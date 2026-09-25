@@ -7,13 +7,11 @@ from src.normalize import normalize_name, normalize_address, extract_postal
 def _enrich(df, label=""):
     print(f"    [{label}] enriching {len(df):,} rows...")
     t = time.time()
-
     df = df.copy()
     df["norm_name"] = df["business_name"].map(normalize_name)
     df["norm_addr"] = df["business_address"].map(normalize_address)
     df["postal"] = df["business_address"].map(extract_postal)
     df["country_l"] = df["country"].astype(str).str.strip().str.lower()
-
     print(f"    [{label}] enriched in {time.time()-t:.1f}s")
     return df
 
@@ -22,7 +20,6 @@ def load_source(path, label=""):
     path = Path(path)
     cache_path = Path(str(path) + ".pkl")
 
-    # ✅ Load from cache if exists — instant
     if cache_path.exists():
         print(f"  Loading cached {cache_path.name} ...")
         t = time.time()
@@ -30,7 +27,6 @@ def load_source(path, label=""):
         print(f"  Loaded {len(df):,} rows from cache in {time.time()-t:.1f}s")
         return df
 
-    # First run — read + enrich + save cache
     print(f"  Reading {path} ...")
     df = pd.read_csv(path, sep="\t")
     print(f"  Loaded {len(df):,} rows")
@@ -52,6 +48,7 @@ def load_train(data_dir):
     s3 = load_source(d / "train_source3.tsv", label="S3")
     print("[4/4] Loading Ground Truth...")
     gt = pd.read_csv(d / "train_ground_truth.tsv", sep="\t")
+    print(f"  GT rows: {len(gt):,}")
     return s1, s2, s3, gt
 
 

@@ -31,6 +31,8 @@ NAME_ABBREVIATIONS = {
     "pvt": "private", "pte": "private",
     "sarl": "sarl", "sas": "sas", "sa": "sa", "eurl": "eurl", "snc": "snc",
     "ste": "societe", "cie": "compagnie",
+    "intl": "international", "svc": "service", "svcs": "services",
+    "mfg": "manufacturing", "tech": "technology",
 }
 
 ADDRESS_ABBREVIATIONS = {
@@ -50,33 +52,32 @@ def expand_abbreviations(text, abbreviations):
     return " ".join(abbreviations.get(tok, tok) for tok in text.split())
 
 
-# ✅ Cache results — huge speedup on repeated names
 @lru_cache(maxsize=2_000_000)
-def _cached_normalize_name(s):
+def _cached_norm_name(s):
     return expand_abbreviations(normalize_text(s), NAME_ABBREVIATIONS)
 
 
 @lru_cache(maxsize=2_000_000)
-def _cached_normalize_address(s):
+def _cached_norm_addr(s):
     return expand_abbreviations(normalize_text(s), ADDRESS_ABBREVIATIONS)
-
-
-def normalize_name(s):
-    if s is None or (isinstance(s, float) and s != s):
-        return ""
-    return _cached_normalize_name(str(s))
-
-
-def normalize_address(s):
-    if s is None or (isinstance(s, float) and s != s):
-        return ""
-    return _cached_normalize_address(str(s))
 
 
 @lru_cache(maxsize=2_000_000)
 def _cached_postal(s):
     m = re.search(r"\b(\d{5})(?:-?\d{4})?\b", str(s))
     return m.group(1) if m else ""
+
+
+def normalize_name(s):
+    if s is None or (isinstance(s, float) and s != s):
+        return ""
+    return _cached_norm_name(str(s))
+
+
+def normalize_address(s):
+    if s is None or (isinstance(s, float) and s != s):
+        return ""
+    return _cached_norm_addr(str(s))
 
 
 def extract_postal(s):
