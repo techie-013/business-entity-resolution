@@ -6,11 +6,9 @@ from sklearn.metrics import precision_score, recall_score
 
 FEATURE_COLS = [
     "name_jaccard", "name_lev", "name_token_sort", "name_partial",
-    "name_token_overlap", "name_token_count_diff",
-    "first_token_match", "name_len_ratio",
     "addr_jaccard", "addr_lev", "addr_token_sort", "addr_partial",
-    "addr_len_ratio",
-    "country_match", "postal_match",
+    "country_match", "postal_match", "first_token_match",
+    "name_len_ratio", "addr_len_ratio",
 ]
 
 

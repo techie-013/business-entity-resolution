@@ -22,3 +22,6 @@ Thumbs.db
 *.pkl
 *.joblib
 *.bin
+
+*.pkl
+data/**/*.pkl

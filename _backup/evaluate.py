@@ -16,7 +16,7 @@ def macro_f05(preds, truth):
     for s1_id, true_ids in truth.items():
         scores.append(f05_per_entity(preds.get(s1_id, set()), true_ids))
     return {
-        "f05": sum(scores) / len(scores) if scores else 0.0,
+        "f05": sum(scores) / len(scores),
         "n_entities": len(scores),
         "n_singletons": sum(1 for t in truth.values() if len(t) == 0),
     }

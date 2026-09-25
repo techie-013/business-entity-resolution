@@ -1,137 +1,90 @@
 import re
 import unicodedata
+from functools import lru_cache
 
 
 def remove_accents(text):
     if text is None:
         return ""
-
     text = str(text)
     text = unicodedata.normalize("NFKD", text)
-
-    return "".join(
-        char
-        for char in text
-        if not unicodedata.combining(char)
-    )
+    return "".join(c for c in text if not unicodedata.combining(c))
 
 
 def normalize_text(s):
     if s is None:
         return ""
-
     if isinstance(s, float) and s != s:
         return ""
-
     text = str(s)
     text = unicodedata.normalize("NFKC", text)
     text = remove_accents(text)
     text = text.lower()
     text = re.sub(r"[^\w\s]", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
-
     return text
 
 
 NAME_ABBREVIATIONS = {
-    "corp": "corporation",
-    "ltd": "limited",
-    "pvt": "private",
+    "corp": "corporation", "co": "company", "ltd": "limited",
+    "inc": "incorporated", "llc": "limited liability company",
+    "pvt": "private", "pte": "private",
+    "sarl": "sarl", "sas": "sas", "sa": "sa", "eurl": "eurl", "snc": "snc",
+    "ste": "societe", "cie": "compagnie",
 }
 
 ADDRESS_ABBREVIATIONS = {
-    "corp": "corporation",
-    "ltd": "limited",
-    "pvt": "private",
-    "rd": "road",
-    "st": "street",
-    "rue": "rue",
-    "av": "avenue",
-    "bd": "boulevard",
+    "rd": "road", "st": "street", "ave": "avenue", "av": "avenue",
+    "blvd": "boulevard", "sq": "square", "ln": "lane",
+    "dr": "drive", "hwy": "highway",
+    "n": "north", "s": "south", "e": "east", "w": "west",
+    "no": "number", "&": "and",
+    "r": "rue", "rue": "rue", "bd": "boulevard", "pl": "place",
+    "che": "chemin", "imp": "impasse", "all": "allee",
 }
 
 
 def expand_abbreviations(text, abbreviations):
-    tokens = text.split()
+    if not isinstance(text, str):
+        return ""
+    return " ".join(abbreviations.get(tok, tok) for tok in text.split())
 
-    expanded = [
-        abbreviations.get(token, token)
-        for token in tokens
-    ]
 
-    return " ".join(expanded)
+# ✅ Cache results — huge speedup on repeated names
+@lru_cache(maxsize=2_000_000)
+def _cached_normalize_name(s):
+    return expand_abbreviations(normalize_text(s), NAME_ABBREVIATIONS)
+
+
+@lru_cache(maxsize=2_000_000)
+def _cached_normalize_address(s):
+    return expand_abbreviations(normalize_text(s), ADDRESS_ABBREVIATIONS)
 
 
 def normalize_name(s):
-    text = normalize_text(s)
-
-    return expand_abbreviations(
-        text,
-        NAME_ABBREVIATIONS
-    )
+    if s is None or (isinstance(s, float) and s != s):
+        return ""
+    return _cached_normalize_name(str(s))
 
 
 def normalize_address(s):
-    text = normalize_text(s)
+    if s is None or (isinstance(s, float) and s != s):
+        return ""
+    return _cached_normalize_address(str(s))
 
-    return expand_abbreviations(
-        text,
-        ADDRESS_ABBREVIATIONS
-    )
+
+@lru_cache(maxsize=2_000_000)
+def _cached_postal(s):
+    m = re.search(r"\b(\d{5})(?:-?\d{4})?\b", str(s))
+    return m.group(1) if m else ""
 
 
 def extract_postal(s):
-    text = normalize_text(s)
-
-    matches = re.findall(r"\b\d{5,6}\b", text)
-
-    if not matches:
+    if s is None or (isinstance(s, float) and s != s):
         return ""
-
-    return matches[-1]
+    return _cached_postal(str(s))
 
 
 def tokenize(s):
     text = normalize_text(s)
-
-    if not text:
-        return set()
-
-    return set(text.split())
-
-
-if __name__ == "__main__":
-    print("Name normalization tests:")
-
-    name_tests = [
-        "Café de la Gare",
-        "ACME Corp.",
-        "Société Générale",
-    ]
-
-    for text in name_tests:
-        print(f"{text!r} -> {normalize_name(text)!r}")
-
-    print("\nAddress normalization tests:")
-
-    address_tests = [
-        "12 MG Rd, Bengaluru",
-        "25 St John's Road, Delhi",
-        "10 Av de Paris",
-        "5 Bd Haussmann",
-    ]
-
-    for text in address_tests:
-        print(f"{text!r} -> {normalize_address(text)!r}")
-
-    print("\nPostal tests:")
-
-    print(
-        "Bengaluru 560001 ->",
-        extract_postal("Bengaluru 560001")
-    )
-
-    print(
-        "75001 Paris ->",
-        extract_postal("75001 Paris")
-    )
+    return set(text.split()) if text else set()
