@@ -2,12 +2,6 @@ import os
 import time
 import pandas as pd
 
-# This validator tests the ACTUAL src.blocking.py currently on disk.
-# It does not modify your project.
-#
-# It samples 2,000 S1 rows, loads FULL S2/S3, calls
-# src.blocking.generate_candidates(), and evaluates the same
-# S1/entity-level recall used by train_model.py.
 
 from src.blocking import generate_candidates
 
