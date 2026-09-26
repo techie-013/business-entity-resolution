@@ -25,3 +25,5 @@ Thumbs.db
 
 *.pkl
 data/**/*.pkl
+output/*.tsv
+data/**/*.tsv

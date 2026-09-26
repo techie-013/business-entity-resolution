@@ -17,7 +17,7 @@ def normalize_text(s):
     if isinstance(s, float) and s != s:
         return ""
     text = str(s)
-    text = unicodedata.normalize("NFKC", text)
+    text = unicodedata.normalize("NFKD", text)   # NFKD (not NFKC) — matches remove_accents
     text = remove_accents(text)
     text = text.lower()
     text = re.sub(r"[^\w\s]", " ", text)
@@ -26,23 +26,35 @@ def normalize_text(s):
 
 
 NAME_ABBREVIATIONS = {
+    # Legal suffixes — US, India, France
     "corp": "corporation", "co": "company", "ltd": "limited",
-    "inc": "incorporated", "llc": "limited liability company",
-    "pvt": "private", "pte": "private",
+    "inc": "incorporated", "llc": "llc", "pvt": "private", "pte": "private",
     "sarl": "sarl", "sas": "sas", "sa": "sa", "eurl": "eurl", "snc": "snc",
     "ste": "societe", "cie": "compagnie",
+    "pllc": "pllc", "llp": "llp", "lp": "lp",
+    # Common short forms
     "intl": "international", "svc": "service", "svcs": "services",
     "mfg": "manufacturing", "tech": "technology",
+    "univ": "university", "govt": "government",
+    "bros": "brothers", "assoc": "association",
 }
 
 ADDRESS_ABBREVIATIONS = {
+    # Street types — US
     "rd": "road", "st": "street", "ave": "avenue", "av": "avenue",
     "blvd": "boulevard", "sq": "square", "ln": "lane",
-    "dr": "drive", "hwy": "highway",
+    "dr": "drive", "hwy": "highway", "pkwy": "parkway",
+    "ct": "court", "cir": "circle",
+    # Directions
     "n": "north", "s": "south", "e": "east", "w": "west",
-    "no": "number", "&": "and",
+    "ne": "northeast", "nw": "northwest", "se": "southeast", "sw": "southwest",
+    # Common
+    "no": "number", "&": "and", "apt": "apartment", "ste": "suite",
+    "bldg": "building", "fl": "floor", "rm": "room",
+    # France
     "r": "rue", "rue": "rue", "bd": "boulevard", "pl": "place",
     "che": "chemin", "imp": "impasse", "all": "allee",
+    "fbg": "faubourg",
 }
 
 
